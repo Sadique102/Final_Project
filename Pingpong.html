@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PingPong</title>
+    <style>
+        body{
+    background-image: url("img/pi.png");
+      background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+
+}
+                #modeSelection {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 50vh;
+        }
+        #modeSelection button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+#gameContainer{
+    text-align: center;
+}
+#gameBoard{
+    border: 3px solid;
+}
+#scoreText{
+   /* font-family: "consolas", monospace;
+    font-size: 45px;
+    color: black;
+    background-color: white;
+  border: 4px solid;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 2px;*/
+    font-family: "Consolas", monospace;
+    font-size: 45px;
+    color: black;
+    background-color: white;
+
+
+
+
+}
+#resetBtn{
+    font-family: "Permanent Marker", cursive;
+    font-size: 16px;
+    width: 100px;
+    height: 30px;
+    border: 4px solid;
+    border-radius: 5px;
+    cursor: pointer;
+}
+    </style>
+</head>
+<body>
+ <div id="modeSelection">
+     <button onclick="goToHome()">Home</button>
+     <button onclick="showInstructions()">Instructions</button>
+        <button onclick="startGame('twoPlayers')">Play with Two Players</button>
+        <button onclick="startGame('againstComputer')">Play Against Computer</button>
+
+
+    </div>
+
+    <div id="gameContainer" style="display: none;">
+        <canvas id="gameBoard" width="1200" height="450"></canvas>
+        <div id="scoreText">0 : 0</div>
+        <button id="resetBtn">Reset</button>
+    </div>
+<button id="goBackBtn" onclick="goBack()" style="display: none;">Go Back</button>
+ <a id="playAgainBtn" href="#" onclick="playAgain()" style="display: none;">Play Again</a>
+
+<a id="goBackToModeSelectionBtn" href="#" onclick="goBackToModeSelection()" style="display: none;">Go Back to Mode Selection</a>
+
+<a id="congratulationsMessage" style="display: none;"></a>
+<a id="continueMessage" style="display: none;">Choose an option:</a>
+
+<a id="goBackOrPlayAgain" href="#" onclick="goBack()" style="display: none;">Go Back</a>
+
+<a id="playAgainOrGoBack" href="#" onclick="startGame(againstComputer ? 'againstComputer' : 'twoPlayers')" style="display: none;">Play Again</a>
+
+<a id="betterLuckNextTimeMessage" style="display: none;">Better luck next time! Choose an option:</a>
+
+<a id="goBackToModeSelectionOrPlayAgain" href="#" onclick="againstComputer ? goBackToModeSelection() : startGame('twoPlayers')" style="display: none;">Play Again</a>
+
+ <audio autoplay id="music">
+  <source src="img/ac.mp3" type="audio/mp3">
+Your browser does not support the audio element.
+</audio>
+
+
+    <script>
+
+        function goToHome() {
+            window.location.href = 'home.html';
+        }
+
+        let againstComputer = false;
+        function showInstructions() {
+        window.location.href = 'instructions.html';
+        }
+        function goBack() {
+        document.getElementById('modeSelection').style.display = 'block';
+        document.getElementById('gameContainer').style.display = 'none';
+        document.getElementById('goBackBtn').style.display = 'none';
+        resetGame();
+    }
+
+        function startGame(mode) {
+            againstComputer = mode === 'againstComputer';
+            document.getElementById('goBackBtn').style.display = 'block';
+            document.getElementById('modeSelection').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+
+            gameStart();
+        }
+
+        const gameBoard = document.querySelector("#gameBoard");
+        const ctx = gameBoard.getContext("2d");
+        const scoreText = document.querySelector("#scoreText");
+        const resetBtn = document.querySelector("#resetBtn");
+        const music = document.getElementById("music");
+        const gameWidth = gameBoard.width;
+        const gameHeight = gameBoard.height;
+        const boardBackground = "forestgreen";
+        const paddle1Color = "blue";
+        const paddle2Color = "red";
+        const paddleBorder = "black";
+        const ballColor = "yellow";
+        const ballBorderColor = "black";
+        const ballRadius = 12.5;
+        const paddleSpeed = 50;
+        let intervalID;
+        let ballSpeed;
+        let ballX = gameWidth / 2;
+        let ballY = gameHeight / 2;
+        let ballXDirection = 0;
+        let ballYDirection = 0;
+        let player1Score = 0;
+        let player2Score = 0;
+        let paddle1 = {
+            width: 25,
+            height: 100,
+            x: 0,
+            y: 0
+        };
+        let paddle2 = {
+            width: 25,
+            height: 100,
+            x: gameWidth - 25,
+            y: gameHeight - 100
+        };
+
+        window.addEventListener("keydown", changeDirection);
+        resetBtn.addEventListener("click", resetGame);
+
+        function gameStart() {
+            playMusic();
+            createBall();
+            nextTick();
+        }
+
+        function playMusic() {
+            music.play();
+        }
+
+        function nextTick() {
+            intervalID = setTimeout(() => {
+                clearBoard();
+                drawPaddles();
+                moveBall();
+                drawBall(ballX, ballY);
+                checkCollision();
+                nextTick();
+            }, 10)
+        }
+
+        function clearBoard() {
+            ctx.fillStyle = boardBackground;
+            ctx.fillRect(0, 0, gameWidth, gameHeight);
+        }
+
+        function drawPaddles() {
+            ctx.strokeStyle = paddleBorder;
+
+            ctx.fillStyle = paddle1Color;
+            ctx.fillRect(paddle1.x, paddle1.y, paddle1.width, paddle1.height);
+            ctx.strokeRect(paddle1.x, paddle1.y, paddle1.width, paddle1.height);
+
+            ctx.fillStyle = paddle2Color;
+            ctx.fillRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
+            ctx.strokeRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
+        }
+
+        function createBall() {
+            ballSpeed = 2;
+            ballXDirection = Math.random() < 0.5 ? -1 : 1;
+            ballYDirection = (Math.random() - 0.5) * 2;
+            ballX = gameWidth / 2;
+            ballY = gameHeight / 2;
+            drawBall(ballX, ballY);
+        }
+
+        function moveBall() {
+            ballX += ballSpeed * ballXDirection;
+            ballY += ballSpeed * ballYDirection;
+        }
+
+        function drawBall(ballX, ballY) {
+            ctx.fillStyle = ballColor;
+            ctx.strokeStyle = ballBorderColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function checkCollision() {
+            if (ballY <= ballRadius || ballY >= gameHeight - ballRadius) {
+                ballYDirection *= -1;
+            }
+
+            if (ballX <= paddle1.x + paddle1.width && ballY > paddle1.y && ballY < paddle1.y + paddle1.height) {
+                ballXDirection *= -1;
+                ballSpeed += 0.5;
+            } else if (ballX >= paddle2.x - ballRadius && ballY > paddle2.y && ballY < paddle2.y + paddle2.height) {
+                ballXDirection *= -1;
+                ballSpeed += 0.5;
+            }
+
+            if (ballX <= 0) {
+                player2Score++;
+                updateScore();
+                createBall();
+                return;
+            }
+            if (ballX >= gameWidth) {
+                player1Score++;
+                updateScore();
+                createBall();
+                return;
+            }
+
+            if (againstComputer) {
+                computerMove();
+            }
+        }
+
+        function computerMove() {
+            const paddle2Center = paddle2.y + paddle2.height / 2;
+            if (paddle2Center < ballY - 10) {
+                paddle2.y += paddleSpeed;
+            } else if (paddle2Center > ballY + 10) {
+                paddle2.y -= paddleSpeed;
+            }
+        }
+
+        function changeDirection(event) {
+            const keyPressed = event.keyCode;
+            const paddle1Up = 87;
+            const paddle1Down = 83;
+            const paddle2Up = 38;
+            const paddle2Down = 40;
+
+            if (keyPressed === paddle1Up && paddle1.y > 0) {
+                paddle1.y -= paddleSpeed;
+            } else if (keyPressed === paddle1Down && paddle1.y < gameHeight - paddle1.height) {
+                paddle1.y += paddleSpeed;
+            } else if (keyPressed === paddle2Up && paddle2.y > 0) {
+                paddle2.y -= paddleSpeed;
+            } else if (keyPressed === paddle2Down && paddle2.y < gameHeight - paddle2.height) {
+                paddle2.y += paddleSpeed;
+            }
+        }
+
+           let consecutiveHits = 0;
+
+    function updateScore() {
+
+        const playerName = sessionStorage.getItem("playerName");
+    scoreText.textContent = `${player1Score} : ${player2Score}`;
+
+    if (againstComputer) {
+        if (ballXDirection === 1 && ballX > paddle2.x && ballX < paddle2.x + paddle2.width) {
+            consecutiveHits++;
+        } else {
+            consecutiveHits = 0;
+        }
+
+        if (consecutiveHits === 5) {
+
+            paddle2.y += paddleSpeed;
+            consecutiveHits = 0;
+        }
+
+        if (player1Score > 0 && player1Score % 5 === 0 && ballX > gameWidth / 2) {
+                sessionStorage.setItem(`${playerName}_score`, player2Score + 100);
+            player2Score++;
+            createBall();
+        }
+    }
+
+    if (player1Score === 8 || player2Score === 8) {
+        endGame();
+    }
+}
+
+
+         function endGame() {
+        let message, playAgain;
+
+        if (player1Score === 8) {
+            message = "Congratulations!! You Won!";
+        } else {
+            message = "Better luck next time!";
+        }
+
+        playAgain = confirm(`${message}\n\nDo you want to play again?`);
+
+        if (playAgain) {
+            resetGame();
+        } else {
+            goBack();
+        }
+    }
+
+        function sendScoreToBackend() {
+            fetch('/score', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ player1: player1Score, player2: player2Score }),
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+        }
+
+        function resetGame() {
+            player1Score = 0;
+            player2Score = 0;
+            paddle1.y = 0;
+            paddle2.y = gameHeight - 100;
+            ballSpeed = 2;
+            ballX = gameWidth / 2;
+            ballY = gameHeight / 2;
+            ballXDirection = 0;
+            ballYDirection = 0;
+            updateScore();
+            clearInterval(intervalID);
+            gameStart();
+        }
+    </script>
+</body>
+</html>

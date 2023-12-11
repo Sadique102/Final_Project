@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PingPong</title>
+
+    <style>
+        body {
+            background-image: url("img/h.png");
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+
+        nav {
+            text-align: center;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav ul li {
+            margin: 20px 0;
+        }
+
+        nav ul li a {
+            background-color: white;
+            text-decoration: none;
+            color: darkred;
+            font-size: 50px;
+            font-family: "Permanent Marker", cursive;
+            border: 4px solid;
+            border-radius: 1px;
+            cursor: pointer;
+        }
+
+        a:hover, a:active {
+            font-size: 500%;
+            background-color: yellow;
+        }
+
+        #greeting {
+            font-size: 24px;
+            color: black;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="greeting">Welcome to our Game</h1>
+
+    <script>
+   window.addEventListener("DOMContentLoaded", (event) => {
+            askForName();
+        });
+
+        function askForName() {
+            const storedName = sessionStorage.getItem("playerName");
+            let playerName;
+
+            if (storedName) {
+
+                playerName = storedName;
+                const greetingElement = document.getElementById("greeting");
+                greetingElement.textContent = `Welcome back, ${playerName}!`;
+            } else {
+
+                playerName = prompt("Please enter your name:");
+
+                if (playerName) {
+                    const greetingElement = document.getElementById("greeting");
+                    greetingElement.textContent = `Welcome, ${playerName}!`;
+
+                    sessionStorage.setItem("playerName", playerName);
+                }
+            }
+        }
+    </script>
+    <nav>
+        <ul>
+            <li><a href="Pingpong.html">PingPong</a></li>
+            <li><a href="rps.html">RockPaperScissors</a></li>
+        </ul>
+    </nav>
+</body>
+</html>

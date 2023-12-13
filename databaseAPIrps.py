@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify
-import sqlite3
+import mysql.connector
 import random
 
 app = Flask(__name__)
 
-# Manually handle CORS
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -14,17 +13,25 @@ def after_request(response):
 
 # Initialize the database and create the table if it doesn't exist
 def init_db():
-    with sqlite3.connect('rps_game.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS game_results (
-            id INTEGER PRIMARY KEY,
-            player_choice TEXT,
-            computer_choice TEXT,
-            result TEXT
-        )
-        ''')
-        conn.commit()
+    conn = mysql.connector.connect(
+         host='127.0.0.1',
+         port= 3306,
+         database='rps',
+         user='root',
+         password='MyN3wP4ssw0rd',
+         autocommit=True
+    )
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS game_results (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        player_choice VARCHAR(10),
+        computer_choice VARCHAR(10),
+        result VARCHAR(20)
+    )
+    ''')
+    conn.commit()
+    conn.close()
 
 init_db()
 
@@ -53,11 +60,20 @@ def play_game():
     result = check_winner(player_choice, computer_choice)
 
     # Save the result to the database
-    with sqlite3.connect('rps_game.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO game_results (player_choice, computer_choice, result) VALUES (?, ?, ?)',
-                       (player_choice, computer_choice, result))
-        conn.commit()
+    conn = mysql.connector.connect(
+        host='127.0.0.1',
+        port=3306,
+        database='rps',
+        user='root',
+        password='MyN3wP4ssw0rd',
+        autocommit=True
+    )
+
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO game_results (player_choice, computer_choice, result) VALUES (%s, %s, %s)',
+                   (player_choice, computer_choice, result))
+    conn.commit()
+    conn.close()
 
     return jsonify({'player': player_choice, 'computer': computer_choice, 'result': result})
 

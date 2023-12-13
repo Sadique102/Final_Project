@@ -2,7 +2,7 @@ import mysql.connector
 from flask import Flask, jsonify, request, g
 
 
-DATABASE = 'ping_pong'
+DATABASE = 'scores'
 USER = 'root'
 PASSWORD = 'MyN3wP4ssw0rd'
 HOST = '127.0.0.1'
@@ -16,7 +16,7 @@ def get_db():
         db = g._database = mysql.connector.connect(
             host='127.0.0.1',
             port=3306,
-            database='ping_pong',
+            database='scores',
             user='root',
             password='MyN3wP4ssw0rd',
             autocommit=True
